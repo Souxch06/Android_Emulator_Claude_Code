@@ -27,3 +27,5 @@ You have a real Android emulator running in the cloud (GitHub Actions runner wit
 - "Device unreachable": `android_status`; if the run ended (time limit), `android_start` again.
 - UI dump fails on animations/secure screens: take a screenshot and use coordinates.
 - Missing config errors: point the user to `docs/CLOUD-SETUP.md`.
+- "Pixel Launcher isn't responding" right after boot is emulator cold-start noise, not the app under test: tap "Wait" (or "Close app") and relaunch the app. Do not report launcher ANRs as app defects.
+- Custom keypads: read the real ids/text with `android_inspect` before writing selectors; e.g. some "C" buttons delete one char (use `long_press`).

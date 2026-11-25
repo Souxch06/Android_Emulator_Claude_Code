@@ -16,6 +16,7 @@ const rpc = (method, params) => new Promise((res) => { pending[++id] = res; srv.
 const log = [];
 async function call(name, args = {}, expectError = false) {
   const t = Date.now(); const m = await rpc('tools/call', { name, arguments: args });
+  if (m.error) m.result = { isError: true, content: [{ type: 'text', text: `JSON-RPC error: ${m.error.message}` }] };
   const text = m.result.content.map((c) => c.type === 'text' ? c.text : `[${c.type} ${c.data.length} b64 chars]`).join(' ');
   const ok = !!m.result.isError === expectError;
   log.push({ tool: name, args, ok, ms: Date.now() - t, out: text.slice(0, 600) });
@@ -42,8 +43,8 @@ await call('android_tap', { text: '5' });
 await call('android_tap', { text: '=' });
 await call('android_inspect', { text: '12' });
 await call('android_test', { name: 'calc-multiply', package: pkg, steps: [
-  { do: 'launch' }, { do: 'wait', text: '6' }, { do: 'tap', text: 'C' },
-  { do: 'tap', text: '6' }, { do: 'tap', desc: 'Multiply' }, { do: 'tap', text: '7' }, { do: 'tap', text: '=' },
+  { do: 'launch' }, { do: 'wait', text: '6' }, { do: 'tap', id: 'btn_clear', long_press: true },
+  { do: 'tap', text: '6' }, { do: 'tap', id: 'btn_multiply' }, { do: 'tap', text: '7' }, { do: 'tap', text: '=' },
   { do: 'assert_visible', text: '42' }, { do: 'screenshot' }, { do: 'assert_no_crash' }] });
 await call('android_test', { name: 'expected-failure', package: pkg, steps: [{ do: 'assert_visible', text: 'NO_SUCH_TEXT', timeout_s: 2 }] });
 await call('android_swipe', { direction: 'up' });

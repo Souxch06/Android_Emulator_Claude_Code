@@ -267,7 +267,11 @@ export const tools = {
   android_type: [T('Type text into the focused field (optionally tap a field first by selector, clear it, press enter).',
     { value: { type: 'string' }, ...sel, clear: { type: 'boolean' }, submit: { type: 'boolean' } }, ['value']),
   async (a) => {
-    if (a.text || a.text_contains || a.id || a.desc) await tools.android_tap[1](a);
+    if (a.text || a.text_contains || a.id || a.desc) {
+      await tools.android_tap[1](a);
+      // Keystrokes sent before the field takes focus are lost: wait for a focused text field (max ~3 s).
+      for (let i = 0; i < 4 && !(await dumpUi()).some((n) => n.focused && /EditText|AutoComplete/.test(n.cls)); i++) await sleep(700);
+    }
     if (a.clear) await sh('input keyevent KEYCODE_MOVE_END ' + Array(60).fill('KEYCODE_DEL').join(' '));
     // `input text` uses %s for spaces; single-quoting protects shell metacharacters.
     for (const chunk of a.value.match(/[\s\S]{1,80}/g) || []) await sh(`input text ${q(chunk.replace(/%/g, '\\%').replace(/ /g, '%s'))}`);
