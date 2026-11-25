@@ -8,6 +8,7 @@ description: Full autonomous Melodix QA in the cloud - fetch Melodix sources fro
 Everything runs in this Claude Code cloud session + a GitHub Actions emulator. Never ask the user to install or run anything.
 
 1. **Build**: `bash cloud/build-melodix.sh [branch]` (default `main`) → last line = APK path; note the commit SHA it prints.
+   The build injects the test key's fingerprint into `expected_signature_sha256` (temp copy), as Melodix's own preview builds do. If the app instead closes and opens github.com/Souxch06/Melodix, that is the anti-tamper signature refusal — a build problem, NOT an app bug.
    If the build fails, report the apktool error lines; never test a stale APK silently.
 2. **Device**: `android_start`. If it answers "Provisioning…", call `android_start` again until ready (it re-attaches; it never creates a 2nd device). Give the user the `android_watch` link (private).
 3. **Install + launch**: `android_install_apk` with the built APK, then `android_launch_app {package:"com.melodix.music"}`. A "Pixel Launcher isn't responding" dialog right after boot is emulator noise: tap "Wait".

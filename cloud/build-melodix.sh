@@ -23,12 +23,23 @@ SHA=$(git -C "$SRC" rev-parse --short HEAD)
 # Same project layout as Melodix's release-apk.yml.
 PROJ=$WORK/proj; rm -rf "$PROJ"; mkdir -p "$PROJ"
 for i in AndroidManifest.xml META-INF apktool.yml assets kotlin lib original res smali unknown; do [ -e "$SRC/$i" ] && cp -r "$SRC/$i" "$PROJ/"; done
+# Melodix verifies its own signing certificate at startup (AndBridge.isSignatureValid) and refuses foreign
+# signatures. Like Melodix's scripts/build_preview_apk.sh, put the test key's fingerprint in the TEMP copy only.
+KS=$WORK/test.keystore
+[ -f "$KS" ] || keytool -genkeypair -keystore "$KS" -storepass android -keypass android -alias test -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=Melodix cloud test" > /dev/null 2>&1
+FP=$(keytool -exportcert -keystore "$KS" -storepass android -alias test 2>/dev/null | sha256sum | awk '{print toupper($1)}' | fold -w 2 | paste -sd ':' -)
+[[ "$FP" =~ ^([A-F0-9]{2}:){31}[A-F0-9]{2}$ ]] || { echo "invalid fingerprint" >&2; exit 1; }
+python3 - "$PROJ/res/values/strings.xml" "$FP" <<'PY'
+import pathlib, re, sys
+p = pathlib.Path(sys.argv[1]); t = p.read_text(encoding="utf-8")
+pat = r'(<string name="expected_signature_sha256">)[^<]*(</string>)'
+assert len(re.findall(pat, t)) == 1, "expected_signature_sha256 not found once"
+p.write_text(re.sub(pat, lambda m: m.group(1) + sys.argv[2] + m.group(2), t), encoding="utf-8")
+PY
 java -jar "$TOOLS/apktool.jar" if --frame-path "$WORK/fw" "$SRC/android/apktool-framework/1.apk" > /dev/null
 java -jar "$TOOLS/apktool.jar" b "$PROJ" --frame-path "$WORK/fw" -o "$OUT/unsigned.apk" > "$OUT/apktool.log" 2>&1 || { tail -30 "$OUT/apktool.log"; exit 1; }
 
-# Test signing key: generated once, kept in the session only. NOT the production key (that one is a Melodix CI secret).
-KS=$WORK/test.keystore
-[ -f "$KS" ] || keytool -genkeypair -keystore "$KS" -storepass android -keypass android -alias test -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=Melodix cloud test" > /dev/null 2>&1
+# Signed with the session's TEST key (above), never the production key (a Melodix CI secret).
 APK=$OUT/Melodix-$SHA-cloudtest.apk
 "$TOOLS/bt/zipalign" -f 4 "$OUT/unsigned.apk" "$OUT/aligned.apk"
 "$TOOLS/bt/apksigner" sign --ks "$KS" --ks-pass pass:android --out "$APK" "$OUT/aligned.apk"
