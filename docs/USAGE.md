@@ -8,6 +8,8 @@ Just ask in natural language, e.g.:
 - "Give me the live view link." → open the link in your browser to watch the device.
 - "Stop the Android device." (do it when finished — saves minutes)
 
+`android_start` returns within 45 s: if the device is still booting it says so — call it again (it re-attaches, never starts a second device). Keep each `android_test` under ~15 steps.
+
 Outputs: screenshots, `android_test` JSON results and `REPORT.md` in `android-cloud-artifacts/` of the current project.
 
 ## Tools (MCP server `android-cloud`)
