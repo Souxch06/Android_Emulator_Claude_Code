@@ -23,10 +23,15 @@ const clear = () => { S = null; rmSync(STATE_FILE, { force: true }); };
 async function gh(path, opts = {}) {
   const tok = env.ANDROID_CLOUD_GH_TOKEN;
   if (!tok) throw new Error('ANDROID_CLOUD_GH_TOKEN is not set (see docs/CLOUD-SETUP.md).');
-  const r = await fetch(path.startsWith('http') ? path : `https://api.github.com${path}`, {
-    ...opts,
-    headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'android-cloud-mcp', ...(opts.body ? { 'Content-Type': 'application/json' } : {}) },
-  });
+  let r;
+  for (let i = 0; i < 4; i++) { // GitHub returns occasional 502/503: retry with backoff
+    r = await fetch(path.startsWith('http') ? path : `https://api.github.com${path}`, {
+      ...opts,
+      headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'android-cloud-mcp', ...(opts.body ? { 'Content-Type': 'application/json' } : {}) },
+    }).catch((e) => ({ ok: false, status: 0, text: async () => e.message }));
+    if (r.ok || (r.status && r.status < 500)) break;
+    await sleep(3000 * (i + 1));
+  }
   if (!r.ok) throw new Error(`GitHub API ${r.status} on ${path}: ${(await r.text()).slice(0, 300)}`);
   return r;
 }
