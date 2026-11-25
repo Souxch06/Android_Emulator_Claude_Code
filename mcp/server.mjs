@@ -25,7 +25,7 @@ async function gh(path, opts = {}) {
   if (!tok) throw new Error('ANDROID_CLOUD_GH_TOKEN is not set (see docs/CLOUD-SETUP.md).');
   const r = await fetch(path.startsWith('http') ? path : `https://api.github.com${path}`, {
     ...opts,
-    headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'android-cloud-mcp' },
+    headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'android-cloud-mcp', ...(opts.body ? { 'Content-Type': 'application/json' } : {}) },
   });
   if (!r.ok) throw new Error(`GitHub API ${r.status} on ${path}: ${(await r.text()).slice(0, 300)}`);
   return r;
