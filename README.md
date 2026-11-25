@@ -19,6 +19,8 @@ Step-by-step: [Windows install](docs/INSTALL-WINDOWS.md) · [Cloud setup](docs/C
 
 Then ask: *"Test this APK: C:\path\app.apk"*.
 
+**No install at all**: open a Claude Code cloud session on this repo and say « Teste Melodix » — see [docs/CLOUD-ONLY.md](docs/CLOUD-ONLY.md).
+
 ## Contents
 - `mcp/server.mjs` — MCP server: `android_start, android_stop, android_status, android_install_apk, android_launch_app, android_screenshot, android_inspect, android_tap, android_swipe, android_type, android_press, android_logcat, android_wait, android_test, android_watch`
 - `runner/agent.mjs` + `.github/workflows/android-cloud.yml` — the cloud device
