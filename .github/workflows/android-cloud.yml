@@ -1,0 +1,83 @@
+name: android-cloud
+run-name: android-cloud ${{ inputs.session }}
+
+# One run = one remote Android device. Started by the MCP server (android_start),
+# ended by android_stop (agent /shutdown or run cancel) or after `minutes`.
+on:
+  workflow_dispatch:
+    inputs:
+      session: { description: Session id, required: true }
+      pubkey: { description: Base64 PEM RSA public key used to encrypt the connection info, required: true }
+      api_level: { description: Android API level, default: '34' }
+      minutes: { description: Max session length in minutes (<= 340), default: '60' }
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  device:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      API: ${{ inputs.api_level }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+
+      - name: Install emulator + system image
+        run: |
+          SDKM=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
+          yes | $SDKM --licenses > /dev/null || true
+          $SDKM --install emulator platform-tools "system-images;android-$API;google_apis;x86_64" > /dev/null
+          echo no | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n cloud -k "system-images;android-$API;google_apis;x86_64" -d pixel_6 --force
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+
+      - name: Boot emulator
+        run: |
+          nohup $ANDROID_HOME/emulator/emulator -avd cloud -no-window -no-audio -no-boot-anim -no-snapshot \
+            -gpu swiftshader_indirect -camera-back none -memory 4096 > /tmp/emulator.log 2>&1 &
+          adb wait-for-device
+          timeout 600 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'
+          for s in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $s 0; done
+          adb shell input keyevent 82
+
+      - name: Start agent + tunnel, publish encrypted connection info
+        env:
+          PUBKEY: ${{ inputs.pubkey }}
+        run: |
+          TOKEN=$(openssl rand -hex 32)
+          AAPT=$(ls -d $ANDROID_HOME/build-tools/*/aapt | sort -V | tail -1)
+          AGENT_TOKEN=$TOKEN AAPT=$AAPT nohup node runner/agent.mjs > /tmp/agent.log 2>&1 &
+          curl -fsSL -o /tmp/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          chmod +x /tmp/cloudflared
+          nohup /tmp/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8080 > /tmp/cloudflared.log 2>&1 &
+          for i in $(seq 60); do URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' /tmp/cloudflared.log | head -1); [ -n "$URL" ] && break; sleep 2; done
+          [ -n "$URL" ] || { echo "tunnel failed"; exit 1; }
+          # wait until the public URL actually answers (DNS propagation)
+          for i in $(seq 60); do curl -fs -H "Authorization: Bearer $TOKEN" "$URL/health" > /dev/null && break; sleep 2; done
+          echo "$PUBKEY" | base64 -d > /tmp/pub.pem
+          mkdir -p /tmp/out
+          printf '{"url":"%s","token":"%s"}' "$URL" "$TOKEN" \
+            | openssl pkeyutl -encrypt -pubin -inkey /tmp/pub.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 \
+            | base64 -w0 > /tmp/out/session.enc
+          echo "Device ready (connection info encrypted for the requesting MCP client)."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: session-${{ inputs.session }}
+          path: /tmp/out/session.enc
+          retention-days: 1
+          compression-level: 0
+
+      - name: Keep device alive
+        env:
+          MINUTES: ${{ inputs.minutes }}
+        run: |
+          END=$(( SECONDS + ${MINUTES//[^0-9]/} * 60 ))
+          while [ ! -f /tmp/android-cloud-stop ] && [ $SECONDS -lt $END ]; do sleep 5; done
+          echo "Session ended."
