@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 355
     env:
       API: ${{ inputs.api_level }}
+      ANDROID_AVD_HOME: /home/runner/.android/avd
     steps:
       - uses: actions/checkout@v4
 
@@ -31,6 +32,7 @@ jobs:
 
       - name: Install emulator + system image
         run: |
+          mkdir -p $ANDROID_AVD_HOME
           SDKM=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
           yes | $SDKM --licenses > /dev/null || true
           $SDKM --install emulator platform-tools "system-images;android-$API;google_apis;x86_64" > /dev/null
@@ -41,8 +43,9 @@ jobs:
         run: |
           nohup $ANDROID_HOME/emulator/emulator -avd cloud -no-window -no-audio -no-boot-anim -no-snapshot \
             -gpu swiftshader_indirect -camera-back none -memory 4096 > /tmp/emulator.log 2>&1 &
+          echo $! > /tmp/emulator.pid
           $ANDROID_HOME/emulator/emulator -accel-check || true
-          if ! timeout 600 bash -c 'adb wait-for-device; until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'; then
+          if ! timeout 600 bash -c 'until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = 1 ]; do kill -0 $(cat /tmp/emulator.pid) || exit 1; sleep 3; done; until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'; then
             echo "::error::emulator did not boot"; tail -80 /tmp/emulator.log; exit 1
           fi
           for s in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $s 0; done
