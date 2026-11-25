@@ -52,7 +52,9 @@ export function unzipFirst(buf) {
 export const decryptSession = (b64, privateKey) => JSON.parse(privateDecrypt(
   { key: privateKey, padding: constants.RSA_PKCS1_OAEP_PADDING, oaepHash: 'sha256' }, Buffer.from(b64.trim(), 'base64')).toString());
 
+let provisioning = null, provisionError = null, provStart = 0;
 async function provision({ api_level = 34, minutes = 60, timeout_s = 900 }) {
+  provStart = Date.now();
   const repo = env.ANDROID_CLOUD_REPO;
   if (!repo) throw new Error('ANDROID_CLOUD_REPO (owner/repo hosting the android-cloud workflow) is not set.');
   const ref = env.ANDROID_CLOUD_REF || (await (await gh(`/repos/${repo}`)).json()).default_branch;
@@ -180,8 +182,21 @@ export const tools = {
   async (a) => {
     if (S?.url) { try { await waitHealthy(20); return `Device already running. Run: ${S.run_url || 'direct'}`; } catch { clear(); } }
     if (env.ANDROID_CLOUD_URL) { S = { url: env.ANDROID_CLOUD_URL.replace(/\/$/, ''), token: env.ANDROID_CLOUD_TOKEN, direct: true }; save(); }
-    else await provision(a);
-    await waitHealthy();
+    else {
+      // MCP clients time tool calls out (Claude Code: 60 s), so never block longer than that and never start a
+      // second device on retry: later calls re-attach to the in-flight provisioning.
+      if (!provisioning) {
+        if (S?.run_id && !S.url) { // orphan from a restarted server: its private key is gone, free the runner
+          await gh(`/repos/${S.repo}/actions/runs/${S.run_id}/cancel`, { method: 'POST' }).catch(() => {}); clear();
+        }
+        provisioning = provision(a).then(() => { provisioning = null; }, (e) => { provisioning = null; provisionError = e; });
+      }
+      const p = provisioning;
+      const done = await Promise.race([p.then(() => true), sleep(45000).then(() => false)]);
+      if (provisionError) { const e = provisionError; provisionError = null; throw e; }
+      if (!done) return `Provisioning the cloud device (${Math.round((Date.now() - provStart) / 1000)} s elapsed, usually ~2-3 min). Run: ${S?.run_url || 'starting'}\nCall android_start again to keep waiting: it re-attaches, it does NOT start another device.`;
+    }
+    await waitHealthy(40);
     const [w, h] = await screenSize();
     const ver = (await sh('getprop ro.build.version.release')).trim();
     return `Device ready: Android ${ver}, screen ${w}x${h}.${S.run_url ? ` Cloud run: ${S.run_url}` : ''}\nLive view: call android_watch.`;
@@ -301,13 +316,16 @@ export const tools = {
     { ...sel, activity: { type: 'string', description: 'Substring of focused activity' }, gone: { type: 'boolean' }, timeout_s: { type: 'integer', description: 'Default 20' } }),
   async (a) => { if (!(await waitFor(a, a))) throw new Error(`Timeout after ${a.timeout_s || 20}s waiting for ${JSON.stringify(a)}. Focus: ${await focus()}`); return 'Condition met'; }],
   android_test: [T('Run a sequence of steps and assertions; returns a pass/fail report with evidence (saved as JSON). Step = {do, ...args} where do is one of: ' +
-    'launch, stop, tap, type, swipe, press, wait, assert_visible, assert_not_visible, assert_no_crash, screenshot, sleep. Args match the single tools (tap: selector or x,y; type: value; press: key; wait/assert_*: selector; sleep: ms).',
+    'launch, stop, tap, type, swipe, press, wait, assert_visible, assert_not_visible, assert_no_crash, screenshot, sleep. Keep each call under ~45 s (about 10-15 steps); remaining steps are reported as not executed. Args match the single tools (tap: selector or x,y; type: value; press: key; wait/assert_*: selector; sleep: ms).',
     { name: { type: 'string' }, package: { type: 'string', description: 'App under test (used by launch/stop/assert_no_crash)' },
       steps: { type: 'array', items: { type: 'object' } }, stop_on_failure: { type: 'boolean', description: 'Default true' }, clear_logs: { type: 'boolean', description: 'Clear logcat before (default true)' } }, ['steps']),
   async ({ name = 'test', package: pkg, steps, stop_on_failure = true, clear_logs = true }) => {
     if (clear_logs) await adb(['logcat', '-b', 'all', '-c']);
     const results = [], t0 = Date.now();
+    const budget = Number(env.ANDROID_CLOUD_TEST_BUDGET_S || 45) * 1000; // stay under the client's tool-call timeout
+    let truncated = false;
     for (const [i, st] of steps.entries()) {
+      if (Date.now() - t0 > budget) { truncated = true; break; }
       const s = { ...st, package: st.package || pkg }, r = { step: i + 1, do: s.do, ok: true };
       try {
         switch (s.do) {
@@ -334,7 +352,7 @@ export const tools = {
     }
     const c = await crashes(pkg);
     const passed = results.every((r) => r.ok) && results.length === steps.length && !c.crash_count && !c.anr_count;
-    const report = { name, passed, executed: results.length, total: steps.length, duration_s: Math.round((Date.now() - t0) / 1000),
+    const report = { name, passed, executed: results.length, total: steps.length, ...(truncated ? { not_executed_reason: 'time budget reached: split this test into shorter android_test calls' } : {}), duration_s: Math.round((Date.now() - t0) / 1000),
       crash_count: c.crash_count, anr_count: c.anr_count, crashes: c.crashes, results };
     mkdirSync(OUT_DIR, { recursive: true });
     const file = join(OUT_DIR, `${name.replace(/[^\w.-]/g, '_')}-${Date.now()}.json`);
