@@ -50,6 +50,8 @@ jobs:
           fi
           for s in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $s 0; done
           adb shell input keyevent 82
+          # The launcher often raises an ANR right after a cold boot: let it settle, then dismiss system dialogs.
+          sleep 20; adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null
 
       - name: Start agent + tunnel, publish encrypted connection info
         env:

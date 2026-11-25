@@ -61,7 +61,10 @@ await call('android_unknown_tool', {}, true); // unknown tool must error cleanly
 const S = JSON.parse(readFileSync(join(homedir(), '.android-cloud', 'session.json'), 'utf8'));
 await call('android_launch_app', { package: pkg });
 await call('android_logcat', { lines: 1, clear: true });
-await fetch(S.url + '/adb', { method: 'POST', headers: { Authorization: `Bearer ${S.token}`, 'content-type': 'application/json' }, body: JSON.stringify({ args: ['shell', `am crash ${pkg}`] }) });
+const adb = async (...args) => (await (await fetch(S.url + '/adb', { method: 'POST', headers: { Authorization: `Bearer ${S.token}`, 'content-type': 'application/json' }, body: JSON.stringify({ args }) })).json()).stdout;
+await adb('root'); await new Promise((r) => setTimeout(r, 5000));
+const pid = (await adb('shell', `pidof ${pkg}`)).trim();
+await adb('shell', `kill -SEGV ${pid}`); // real native crash of the app process (google_apis images allow adb root)
 await new Promise((r) => setTimeout(r, 3000));
 const cr = JSON.parse(await call('android_logcat', { crashes_only: true, package: pkg }));
 log.push({ tool: 'crash-detection', ok: cr.crash_count >= 1, out: `crash_count=${cr.crash_count}` });

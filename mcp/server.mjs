@@ -152,6 +152,9 @@ async function crashes(pkg) {
   const anr = (await adb(['logcat', '-d', '-v', 'time', '-s', 'ActivityManager:E'])).stdout.split('\n').filter((l) => /ANR in/.test(l));
   const keep = (t) => !pkg || t.includes(pkg);
   const blocks = crash.split(/(?=^.*FATAL EXCEPTION)/m).filter((b) => b.includes('FATAL EXCEPTION') && keep(b));
+  // Native crashes (SIGSEGV/SIGABRT...): one "Fatal signal" line from libc per crash, naming the process.
+  // The kernel truncates process names to their last 15 chars ("m.melodix.music").
+  blocks.push(...crash.split('\n').filter((l) => /Fatal signal \d+/.test(l) && (!pkg || l.includes(pkg.slice(-15)))));
   return { crash_count: blocks.length, anr_count: anr.filter(keep).length, crashes: blocks.map((b) => b.slice(0, 4000)), anrs: anr.filter(keep) };
 }
 
