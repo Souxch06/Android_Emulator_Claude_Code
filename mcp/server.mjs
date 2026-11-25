@@ -38,11 +38,14 @@ async function gh(path, opts = {}) {
 
 // Returns the first file of a zip archive (GitHub artifacts are zips).
 export function unzipFirst(buf) {
-  if (buf.readUInt32LE(0) !== 0x04034b50) throw new Error('not a zip');
-  const method = buf.readUInt16LE(8), size = buf.readUInt32LE(18), nameLen = buf.readUInt16LE(26), extraLen = buf.readUInt16LE(28);
-  const start = 30 + nameLen + extraLen;
+  // Sizes come from the central directory: local headers may hold 0 (data descriptor, as upload-artifact writes).
+  const eocd = buf.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  if (eocd < 0) throw new Error('not a zip');
+  const cd = buf.readUInt32LE(eocd + 16);
+  const method = buf.readUInt16LE(cd + 10), size = buf.readUInt32LE(cd + 20), lh = buf.readUInt32LE(cd + 42);
+  const start = lh + 30 + buf.readUInt16LE(lh + 26) + buf.readUInt16LE(lh + 28);
   if (method === 0) return buf.subarray(start, start + size);
-  if (method === 8) return inflateRawSync(buf.subarray(start, size ? start + size : undefined));
+  if (method === 8) return inflateRawSync(buf.subarray(start, start + size));
   throw new Error(`unsupported zip method ${method}`);
 }
 
