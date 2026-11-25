@@ -21,7 +21,8 @@ const clear = () => { S = null; rmSync(STATE_FILE, { force: true }); };
 
 // ---------- GitHub (cloud provisioning) ----------
 async function gh(path, opts = {}) {
-  const tok = env.ANDROID_CLOUD_GH_TOKEN;
+  // In a Claude Code cloud session the GitHub connection is injected by the session proxy (GITHUB_TOKEN).
+  const tok = env.ANDROID_CLOUD_GH_TOKEN || env.GITHUB_TOKEN || env.GH_TOKEN;
   if (!tok) throw new Error('ANDROID_CLOUD_GH_TOKEN is not set (see docs/CLOUD-SETUP.md).');
   let r;
   for (let i = 0; i < 4; i++) { // GitHub returns occasional 502/503: retry with backoff
@@ -205,7 +206,7 @@ export const tools = {
     if (!S) return 'No active session.';
     const notes = [];
     try { await agent('/shutdown', { method: 'POST', timeout: 20 }); notes.push('agent shutdown requested'); } catch (e) { notes.push(`agent: ${e.message}`); }
-    if (S.run_id && env.ANDROID_CLOUD_GH_TOKEN) {
+    if (S.run_id && (env.ANDROID_CLOUD_GH_TOKEN || env.GITHUB_TOKEN || env.GH_TOKEN)) {
       await sleep(15000);
       const st = await (await gh(`/repos/${S.repo}/actions/runs/${S.run_id}`)).json();
       if (st.status !== 'completed') { await gh(`/repos/${S.repo}/actions/runs/${S.run_id}/cancel`, { method: 'POST' }).catch(() => {}); notes.push('run cancelled'); }
@@ -217,7 +218,7 @@ export const tools = {
   android_status: [T('State of the remote device: connection, boot, foreground app, cloud run status.'), async () => {
     if (!S) return JSON.stringify({ state: 'stopped' });
     const out = { state: 'unknown', run_url: S.run_url, started_at: S.started_at };
-    if (S.run_id && env.ANDROID_CLOUD_GH_TOKEN) { const st = await (await gh(`/repos/${S.repo}/actions/runs/${S.run_id}`)).json(); out.run_status = `${st.status}${st.conclusion ? `/${st.conclusion}` : ''}`; }
+    if (S.run_id && (env.ANDROID_CLOUD_GH_TOKEN || env.GITHUB_TOKEN || env.GH_TOKEN)) { const st = await (await gh(`/repos/${S.repo}/actions/runs/${S.run_id}`)).json(); out.run_status = `${st.status}${st.conclusion ? `/${st.conclusion}` : ''}`; }
     if (S.url) {
       try { const h = await agent('/health', { timeout: 15 }); out.state = h.boot_completed ? 'ready' : 'booting'; out.focus = await focus(); }
       catch (e) { out.state = 'unreachable'; out.error = e.message; }

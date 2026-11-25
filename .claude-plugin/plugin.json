@@ -3,5 +3,19 @@
   "version": "1.0.0",
   "description": "Gives Claude its own remote Android emulator in the cloud (free GitHub Actions runner + KVM): install APKs, drive the UI, screenshots, logcat, crash/ANR detection, test runs and live view.",
   "license": "MIT",
-  "keywords": ["android", "emulator", "qa", "mcp", "testing"]
+  "keywords": [
+    "android",
+    "emulator",
+    "qa",
+    "mcp",
+    "testing"
+  ],
+  "mcpServers": {
+    "android-cloud": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/mcp/server.mjs"
+      ]
+    }
+  }
 }
