@@ -3,7 +3,7 @@
     "android-cloud": {
       "command": "node",
       "args": [
-        "mcp/server.mjs"
+        "${CLAUDE_PLUGIN_ROOT:-.}/mcp/server.mjs"
       ],
       "env": {
         "ANDROID_CLOUD_REPO": "Souxch06/Android_Emulator_Claude_Code",

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Build Melodix from its GitHub sources inside the cloud session (no local PC involved).
 # Melodix is an apktool project (smali/res): apktool b -> zipalign -> apksigner with a TEST key.
-# Usage: cloud/build-melodix.sh [git-ref]   -> prints the APK path on the last line.
+# Usage: cloud/build-melodix.sh [git-ref]  or  MELODIX_DIR=/path/to/melodix cloud/build-melodix.sh
+#        -> prints the APK path on the last line.
 set -euo pipefail
 REF=${1:-main}
 WORK=${ANDROID_CLOUD_WORK:-$HOME/.android-cloud/work}
@@ -15,8 +16,13 @@ if [ ! -x "$TOOLS/bt/zipalign" ]; then
   rm -rf "$TOOLS/bt" "$TOOLS/android-15"; (cd "$TOOLS" && unzip -q bt.zip && mv android-15 bt); rm "$TOOLS/bt.zip"
 fi
 
-# Sources: public repo, fetched fresh every build so each correction is picked up.
-if [ -d "$SRC/.git" ]; then git -C "$SRC" fetch -q --depth 1 origin "$REF" && git -C "$SRC" checkout -q -f FETCH_HEAD
+# Sources: a local Melodix checkout (MELODIX_DIR, e.g. the session's repo: builds its current state, uncommitted
+# changes included, without touching it) or else the public repo fetched fresh at REF.
+if [ -n "${MELODIX_DIR:-}" ]; then
+  [ -f "$MELODIX_DIR/apktool.yml" ] && [ -d "$MELODIX_DIR/smali" ] || { echo "MELODIX_DIR is not a Melodix checkout: $MELODIX_DIR" >&2; exit 1; }
+  SRC=$MELODIX_DIR; REF=$(git -C "$SRC" rev-parse --abbrev-ref HEAD 2>/dev/null || echo local)
+  [ -z "$(git -C "$SRC" status --porcelain 2>/dev/null)" ] || echo "note: building uncommitted changes of $SRC"
+elif [ -d "$SRC/.git" ]; then git -C "$SRC" fetch -q --depth 1 origin "$REF" && git -C "$SRC" checkout -q -f FETCH_HEAD
 else GIT_LFS_SKIP_SMUDGE=1 git clone -q --depth 1 --branch "$REF" https://github.com/Souxch06/Melodix "$SRC"; fi
 SHA=$(git -C "$SRC" rev-parse --short HEAD)
 
