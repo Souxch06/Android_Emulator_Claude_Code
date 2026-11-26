@@ -62,8 +62,14 @@ jobs:
           AGENT_TOKEN=$TOKEN AAPT=$AAPT nohup node runner/agent.mjs > /tmp/agent.log 2>&1 &
           curl -fsSL -o /tmp/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
           chmod +x /tmp/cloudflared
-          nohup /tmp/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8080 > /tmp/cloudflared.log 2>&1 &
-          for i in $(seq 60); do URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' /tmp/cloudflared.log | head -1); [ -n "$URL" ] && break; sleep 2; done
+          # Quick tunnels have no SLA and sometimes never hand out a URL: retry up to 3 times.
+          for attempt in 1 2 3; do
+            nohup /tmp/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8080 > /tmp/cloudflared.log 2>&1 &
+            CF=$!
+            for i in $(seq 45); do URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' /tmp/cloudflared.log | head -1); [ -n "$URL" ] && break; sleep 2; done
+            [ -n "$URL" ] && break
+            echo "tunnel attempt $attempt failed, retrying"; kill $CF || true
+          done
           [ -n "$URL" ] || { echo "tunnel failed"; exit 1; }
           # wait until the public URL actually answers (DNS propagation)
           for i in $(seq 60); do curl -fs -H "Authorization: Bearer $TOKEN" "$URL/health" > /dev/null && break; sleep 2; done

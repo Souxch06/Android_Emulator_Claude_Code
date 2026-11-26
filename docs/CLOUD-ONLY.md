@@ -12,6 +12,8 @@
  GitHub auth: the session's own GitHub connection (proxy-injected). No PAT, no local MCP config.
 ```
 
+To use it from the **Melodix** repo instead of this one, install the plugin: [PLUGIN.md](PLUGIN.md).
+
 ## Procedure (phone or browser)
 1. Open **claude.ai/code** (or the Claude app → Code), choose the repository **Souxch06/Android_Emulator_Claude_Code**
    (default branch `ccr-ea67e9ee-ors7nn`, which holds this setup).

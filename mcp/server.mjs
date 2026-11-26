@@ -11,7 +11,8 @@ import { pathToFileURL } from 'node:url';
 const env = process.env;
 const STATE_DIR = join(homedir(), '.android-cloud');
 const STATE_FILE = join(STATE_DIR, 'session.json');
-const OUT_DIR = resolve(env.ANDROID_CLOUD_OUT || 'android-cloud-artifacts');
+// Default outside the working tree so testing another repo (e.g. Melodix) never leaves untracked files in it.
+const OUT_DIR = resolve(env.ANDROID_CLOUD_OUT || join(homedir(), '.android-cloud', 'artifacts'));
 const WORKFLOW = env.ANDROID_CLOUD_WORKFLOW || 'android-cloud.yml';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

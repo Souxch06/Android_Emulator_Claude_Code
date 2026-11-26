@@ -8,7 +8,8 @@
       "env": {
         "ANDROID_CLOUD_REPO": "Souxch06/Android_Emulator_Claude_Code",
         "NODE_USE_ENV_PROXY": "1",
-        "NODE_NO_WARNINGS": "1"
+        "NODE_NO_WARNINGS": "1",
+        "ANDROID_CLOUD_OUT": "android-cloud-artifacts"
       }
     }
   }

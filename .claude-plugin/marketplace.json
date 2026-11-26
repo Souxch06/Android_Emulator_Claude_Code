@@ -1,7 +1,14 @@
 {
   "name": "android-cloud",
-  "owner": { "name": "android-cloud maintainers" },
+  "owner": {
+    "name": "Souxch06"
+  },
   "plugins": [
-    { "name": "android-cloud", "source": "./", "description": "Remote cloud Android emulator for Claude Code (MCP + QA skills)." }
-  ]
+    {
+      "name": "android-cloud",
+      "source": "./",
+      "description": "Remote cloud Android emulator for Claude Code (MCP + QA skills)."
+    }
+  ],
+  "description": "Android Cloud Emulator plugin for Claude Code"
 }
