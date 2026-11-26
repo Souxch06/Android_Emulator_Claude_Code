@@ -6,6 +6,8 @@ allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/cloud/build-melodix.sh *), Bash(bash $
 
 # Teste Melodix (100 % cloud)
 
+**Mandatory, even for a quick "does it start?" check:** build the APK from the sources being tested (step 1) — never install a prebuilt APK from `releases/` unless the user explicitly asks for that file — and always finish with `android_stop` (step 7), also after failures.
+
 Everything runs in this Claude Code cloud session (build) + a GitHub Actions emulator (device), driven by the
 `android_*` MCP tools of the android-cloud plugin. Never ask the user to install or run anything. Ask at most one
 targeted question, only if something indispensable is missing (e.g. which branch, when ambiguous).
@@ -25,7 +27,7 @@ github.com/Souxch06/Melodix, that is the signature refusal — a build problem, 
 If the build fails, report the apktool error lines; never test a stale APK.
 
 ## 2. Device
-`android_start`. If it answers "Provisioning…", call `android_start` again until ready (re-attaches, never a 2nd device).
+`android_start`. If it answers "Provisioning…" or "Device run ended early" (cloud tunnel flake), call `android_start` again until ready (re-attaches, never a 2nd device).
 Give the `android_watch` link (private). Cold-boot "Pixel Launcher isn't responding" = emulator noise: tap "Wait".
 
 ## 3. Install + launch
@@ -58,5 +60,5 @@ and give the PR link; the user decides the merge.
 
 ## 7. Report (phone-readable) & stop
 Short Markdown: build (branch@sha, dirty?), Android version, run URL; table executed / passed / failed / not testable;
-defects with steps, expected/actual, screenshot paths, log excerpt. Screenshots/JSON are in `android-cloud-artifacts/`
-(do not commit them into Melodix unless asked). Always finish with `android_stop` and confirm the run is completed.
+defects with steps, expected/actual, screenshot paths, log excerpt. Screenshots/JSON are saved under `~/.android-cloud/artifacts/` (outside the repo; paths are printed by
+the tools). Do not copy them into Melodix unless asked. Always finish with `android_stop` and confirm the run is completed.
