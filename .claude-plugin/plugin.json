@@ -1,6 +1,6 @@
 {
   "name": "android-cloud",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Remote Android emulator in the cloud for Claude Code (GitHub Actions + KVM): 15 android_* MCP tools, Melodix cloud build, QA skills incl. 'Teste Melodix'.",
   "license": "MIT",
   "keywords": [
@@ -13,5 +13,18 @@
   "repository": "https://github.com/Souxch06/Android_Emulator_Claude_Code",
   "author": {
     "name": "Souxch06"
+  },
+  "mcpServers": {
+    "android-cloud": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/mcp/server.mjs"
+      ],
+      "env": {
+        "ANDROID_CLOUD_REPO": "Souxch06/Android_Emulator_Claude_Code",
+        "NODE_USE_ENV_PROXY": "1",
+        "NODE_NO_WARNINGS": "1"
+      }
+    }
   }
 }
