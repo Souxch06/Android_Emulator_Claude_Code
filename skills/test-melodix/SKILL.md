@@ -19,7 +19,7 @@ targeted question, only if something indispensable is missing (e.g. which branch
 - "Teste cette nouvelle branche X" / no Melodix checkout: build branch X (default `main`) from GitHub.
 
 ## 1. Build (in this session)
-- Local checkout: `MELODIX_DIR="$PWD" bash ${CLAUDE_PLUGIN_ROOT}/cloud/build-melodix.sh`
+- Local checkout: `bash ${CLAUDE_PLUGIN_ROOT}/cloud/build-melodix.sh --dir "$PWD"`
 - Branch from GitHub: `bash ${CLAUDE_PLUGIN_ROOT}/cloud/build-melodix.sh <branch>`
 Last line = APK path. The build injects the test key's fingerprint into `expected_signature_sha256` of a temporary
 copy (Melodix's own preview mechanism); the production key is never used. If the app closes and opens

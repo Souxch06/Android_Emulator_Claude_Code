@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Build Melodix from its GitHub sources inside the cloud session (no local PC involved).
 # Melodix is an apktool project (smali/res): apktool b -> zipalign -> apksigner with a TEST key.
-# Usage: cloud/build-melodix.sh [git-ref]  or  MELODIX_DIR=/path/to/melodix cloud/build-melodix.sh
+# Usage: cloud/build-melodix.sh [git-ref]  or  cloud/build-melodix.sh --dir /path/to/melodix
 #        -> prints the APK path on the last line.
 set -euo pipefail
+# --dir DIR: build a local Melodix checkout (same as MELODIX_DIR=DIR); an argument keeps the command matchable by allow rules.
+[ "${1:-}" = "--dir" ] && { MELODIX_DIR=${2:?--dir needs a path}; set -- ; }
 REF=${1:-main}
 WORK=${ANDROID_CLOUD_WORK:-$HOME/.android-cloud/work}
 TOOLS=$WORK/tools; SRC=$WORK/melodix; OUT=$WORK/out
