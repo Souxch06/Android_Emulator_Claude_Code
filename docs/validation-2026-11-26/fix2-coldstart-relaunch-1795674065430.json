@@ -1,0 +1,92 @@
+{
+  "name": "fix2-coldstart-relaunch",
+  "passed": true,
+  "executed": 14,
+  "total": 14,
+  "duration_s": 30,
+  "crash_count": 0,
+  "anr_count": 0,
+  "crashes": [],
+  "results": [
+    {
+      "step": 1,
+      "do": "launch",
+      "ok": true,
+      "info": "Launched com.melodix.music. Focus: mCurrentFocus=Window{9cdfc44 u0 com.melodix.music/com.melodix.music.MainActivity}\n  mFocusedApp=ActivityRecord{f21297d u0 com.melodix.music/.MainActivity t12}"
+    },
+    {
+      "step": 2,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 3,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/fix2-coldstart-relaunch-step3-1795674039677.png"
+    },
+    {
+      "step": 4,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 5,
+      "do": "stop",
+      "ok": true,
+      "info": "Stopped com.melodix.music"
+    },
+    {
+      "step": 6,
+      "do": "launch",
+      "ok": true,
+      "info": "Launched com.melodix.music. Focus: mCurrentFocus=Window{94e3357 u0 com.melodix.music/com.melodix.music.MainActivity}\n  mFocusedApp=ActivityRecord{af77839 u0 com.melodix.music/.MainActivity t13}"
+    },
+    {
+      "step": 7,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 8,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/fix2-coldstart-relaunch-step8-1795674052372.png"
+    },
+    {
+      "step": 9,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 10,
+      "do": "stop",
+      "ok": true,
+      "info": "Stopped com.melodix.music"
+    },
+    {
+      "step": 11,
+      "do": "launch",
+      "ok": true,
+      "info": "Launched com.melodix.music. Focus: mCurrentFocus=Window{9c32931 u0 com.melodix.music/com.melodix.music.MainActivity}\n  mFocusedApp=ActivityRecord{b63617d u0 com.melodix.music/.MainActivity t14}"
+    },
+    {
+      "step": 12,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 13,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/fix2-coldstart-relaunch-step13-1795674064454.png"
+    },
+    {
+      "step": 14,
+      "do": "assert_no_crash",
+      "ok": true
+    }
+  ]
+}

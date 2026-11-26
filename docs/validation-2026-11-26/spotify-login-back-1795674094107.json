@@ -1,0 +1,68 @@
+{
+  "name": "spotify-login-back",
+  "passed": true,
+  "executed": 10,
+  "total": 10,
+  "duration_s": 18,
+  "crash_count": 0,
+  "anr_count": 0,
+  "crashes": [],
+  "results": [
+    {
+      "step": 1,
+      "do": "tap",
+      "ok": true,
+      "info": "Tapped \"Se connecter à Spotify\" at (540,882)"
+    },
+    {
+      "step": 2,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 3,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/spotify-login-back-step3-1795674085376.png"
+    },
+    {
+      "step": 4,
+      "do": "press",
+      "ok": true,
+      "info": "Pressed back"
+    },
+    {
+      "step": 5,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 6,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/spotify-login-back-step6-1795674087033.png"
+    },
+    {
+      "step": 7,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 8,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/spotify-login-back-step8-1795674090633.png"
+    },
+    {
+      "step": 9,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 10,
+      "do": "assert_no_crash",
+      "ok": true
+    }
+  ]
+}

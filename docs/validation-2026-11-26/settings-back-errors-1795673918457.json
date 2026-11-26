@@ -1,0 +1,86 @@
+{
+  "name": "settings-back-errors",
+  "passed": true,
+  "executed": 13,
+  "total": 13,
+  "duration_s": 24,
+  "crash_count": 0,
+  "anr_count": 0,
+  "crashes": [],
+  "results": [
+    {
+      "step": 1,
+      "do": "tap",
+      "ok": true,
+      "info": "Tapped \"Paramètres\" at (975,202)"
+    },
+    {
+      "step": 2,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 3,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 4,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/settings-back-errors-step4-1795673903587.png"
+    },
+    {
+      "step": 5,
+      "do": "swipe",
+      "ok": true,
+      "info": "Swiped (540,1920)->(540,480)"
+    },
+    {
+      "step": 6,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/settings-back-errors-step6-1795673905531.png"
+    },
+    {
+      "step": 7,
+      "do": "press",
+      "ok": true,
+      "info": "Pressed back"
+    },
+    {
+      "step": 8,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 9,
+      "do": "assert_visible",
+      "ok": true
+    },
+    {
+      "step": 10,
+      "do": "tap",
+      "ok": true,
+      "info": "Tapped \"Réessayer la bibliothèque\" at (540,714)"
+    },
+    {
+      "step": 11,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 12,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/settings-back-errors-step12-1795673917684.png"
+    },
+    {
+      "step": 13,
+      "do": "assert_no_crash",
+      "ok": true
+    }
+  ]
+}

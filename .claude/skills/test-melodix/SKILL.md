@@ -15,10 +15,12 @@ Everything runs in this Claude Code cloud session + a GitHub Actions emulator. N
 4. **Functional tests** — short `android_test` calls (≤15 steps), `assert_no_crash` at the end. Known selectors (check with `android_inspect` first, the UI changes between versions): tabs `nativeHomeTab`, `nativeSearchTab`, `nativeLibraryTab`; settings `nativeSettingsButton`; search field `nativeSearchInput`.
    - Navigation: Accueil / Rechercher / Bibliothèque / Paramètres / back.
    - Search: type a query, submit, screenshot results.
-   - **Audius**, **YouTube**: locate their entry points (search results, sources, settings) with inspect; try to play a track; verify the player (play/pause, progress changing between two screenshots) and `android_logcat {grep:"MediaPlayer|ExoPlayer|AudioTrack|audio"}`.
+   - **Audius**, **YouTube**: first `grep -rli 'audius\|youtube' smali assets` in the built sources; at `816f29a` they do not exist (only the Spotify Web Player). If an entry point appears in a newer version, try to play a track and verify the player (play/pause, progress changing between two screenshots, `android_logcat {grep:"MediaPlayer|ExoPlayer|AudioTrack|audio"}`). Never report them as tested if not used.
+   - Known, not app bugs: search/playlists are gated without Spotify ("nécessite un accès confirmé"); the "Going Back…" label after leaving the Spotify login page comes from the WebView, not Melodix.
    - **Spotify**: the emulator has no logged-in account. Test what works without credentials (login screen opens, error handling). Never type credentials unless the user explicitly provides test credentials for this purpose; report Spotify playback as "not testable without an account".
    - Relaunch: `action:"stop"` then launch, twice; screenshot after each.
 5. **Evidence**: `android_logcat {crashes_only:true, package:"com.melodix.music"}`, screenshots and JSON reports in `android-cloud-artifacts/`.
 6. **Report**: follow `skills/android-test-report`; include build SHA, Android version, run URL. Separate executed / failed / not testable.
 7. **Stop**: `android_stop` at the end.
-8. **Retest after a fix**: restart at step 1 with the branch/commit containing the fix, rerun the same sequences, compare with the previous report.
+8. **Fixing**: only obvious, low-risk fixes, on a dedicated branch of Souxch06/Melodix (never `main`); rebuild with `cloud/build-melodix.sh <branch>`, uninstall, reinstall, rerun the same tests, and check side effects (a first fix of the crash-guard toast had to be narrowed after the emulator showed new toasts). Pushing to Melodix needs the user's approval to attach it with write access.
+9. **Retest after a fix**: restart at step 1 with the branch/commit containing the fix, rerun the same sequences, compare with the previous report.

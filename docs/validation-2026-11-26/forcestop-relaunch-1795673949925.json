@@ -1,0 +1,81 @@
+{
+  "name": "forcestop-relaunch",
+  "passed": true,
+  "executed": 12,
+  "total": 12,
+  "duration_s": 19,
+  "crash_count": 0,
+  "anr_count": 0,
+  "crashes": [],
+  "results": [
+    {
+      "step": 1,
+      "do": "stop",
+      "ok": true,
+      "info": "Stopped com.melodix.music"
+    },
+    {
+      "step": 2,
+      "do": "launch",
+      "ok": true,
+      "info": "Launched com.melodix.music. Focus: mCurrentFocus=Window{2caab4e u0 com.melodix.music/com.melodix.music.MainActivity}\n  mFocusedApp=ActivityRecord{136f79c u0 com.melodix.music/.MainActivity t10}"
+    },
+    {
+      "step": 3,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 4,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/forcestop-relaunch-step4-1795673936293.png"
+    },
+    {
+      "step": 5,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 6,
+      "do": "stop",
+      "ok": true,
+      "info": "Stopped com.melodix.music"
+    },
+    {
+      "step": 7,
+      "do": "launch",
+      "ok": true,
+      "info": "Launched com.melodix.music. Focus: mCurrentFocus=Window{a1a8222 u0 com.melodix.music/com.melodix.music.MainActivity}\n  mFocusedApp=ActivityRecord{5d0de66 u0 com.melodix.music/.MainActivity t11}"
+    },
+    {
+      "step": 8,
+      "do": "sleep",
+      "ok": true
+    },
+    {
+      "step": 9,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/forcestop-relaunch-step9-1795673945723.png"
+    },
+    {
+      "step": 10,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 11,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/forcestop-relaunch-step11-1795673949457.png"
+    },
+    {
+      "step": 12,
+      "do": "assert_no_crash",
+      "ok": true
+    }
+  ]
+}

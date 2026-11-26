@@ -1,0 +1,88 @@
+{
+  "name": "ui-tabs",
+  "passed": true,
+  "executed": 13,
+  "total": 13,
+  "duration_s": 22,
+  "crash_count": 0,
+  "anr_count": 0,
+  "crashes": [],
+  "results": [
+    {
+      "step": 1,
+      "do": "assert_visible",
+      "ok": true
+    },
+    {
+      "step": 2,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/ui-tabs-step2-1795673859710.png"
+    },
+    {
+      "step": 3,
+      "do": "tap",
+      "ok": true,
+      "info": "Tapped \"Rechercher\" at (539,2227)"
+    },
+    {
+      "step": 4,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 5,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/ui-tabs-step5-1795673865972.png"
+    },
+    {
+      "step": 6,
+      "do": "tap",
+      "ok": true,
+      "info": "Tapped \"Bibliothèque\" at (864,2227)"
+    },
+    {
+      "step": 7,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 8,
+      "do": "screenshot",
+      "ok": true,
+      "screenshot": "/home/user/Android_Emulator_Claude_Code/android-cloud-artifacts/ui-tabs-step8-1795673871850.png"
+    },
+    {
+      "step": 9,
+      "do": "swipe",
+      "ok": true,
+      "info": "Swiped (540,1920)->(540,480)"
+    },
+    {
+      "step": 10,
+      "do": "swipe",
+      "ok": true,
+      "info": "Swiped (540,480)->(540,1920)"
+    },
+    {
+      "step": 11,
+      "do": "tap",
+      "ok": true,
+      "info": "Tapped \"Accueil\" at (215,2227)"
+    },
+    {
+      "step": 12,
+      "do": "wait",
+      "ok": true,
+      "info": "Condition met"
+    },
+    {
+      "step": 13,
+      "do": "assert_no_crash",
+      "ok": true
+    }
+  ]
+}
